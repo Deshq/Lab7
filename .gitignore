@@ -1,0 +1,23 @@
+# IDE
+/.idea
+
+# env
+/.venv
+
+# Python
+pycache/
+*.py[cod]
+*$py.class
+
+# Pytest
+.pytest_cache
+
+# Environments
+.env
+
+# Translations
+*.mo
+*.pot
+
+# prof file
+*.prof

@@ -1,0 +1,57 @@
+version: '3'
+
+dotenv: ['.env']
+
+tasks:
+  default:
+    desc: Info
+    cmds: 
+      - task -l
+
+  run_blocking_mpi:
+    desc: run blocking_mpi
+    cmds:
+      - mpiexec -n $COUNT_PROCESSES python blocking_mpi.py $MATRIX_DIMENSION
+
+  run_gather_scatter_mpi:
+    desc: run gather_scatter_mpi
+    cmds:
+      - mpiexec -n $COUNT_PROCESSES python gather_scatter_mpi.py $MATRIX_DIMENSION 
+
+  run_alltoall_mpi:
+    desc: run alltoall_mpi
+    cmds:
+      - mpiexec -n $COUNT_PROCESSES python alltoall_mpi.py $MATRIX_DIMENSION 
+
+  run1-t:
+    desc: blocking matrix multiplication
+    cmds:
+      - mpiexec -n $COUNT_PROCESSES python -m cProfile -o tuna_results/blocking-$MATRIX_DIMENSION-$COUNT_PROCESSES.prof blocking_mpi.py $MATRIX_DIMENSION
+
+  run2-t:
+    desc: gather_scatter_mpi matrix multiplication
+    deps: [run1-t]
+    cmds:
+      - mpiexec -n $COUNT_PROCESSES python -m cProfile -o tuna_results/gather_scatter-$MATRIX_DIMENSION-$COUNT_PROCESSES.prof gather_scatter_mpi.py $MATRIX_DIMENSION
+          
+  test:
+    desc: Investigate effectiveness
+    deps: [run2-t]
+    cmds:
+      - mpiexec -n $COUNT_PROCESSES python -m cProfile -o tuna_results/alltoall-$MATRIX_DIMENSION-$COUNT_PROCESSES.prof alltoall_mpi.py $MATRIX_DIMENSION  
+  
+  
+  tuna_blocking_mpi:
+    desc: Visualizing Python runtime blocking matrix multiplication
+    cmds:
+      - tuna tuna_results/blocking-$MATRIX_DIMENSION-$COUNT_PROCESSES.prof
+  
+  tuna_gather_scatter_mpi:
+    desc: Visualizing Python runtime gather_scatter matrix multiplication
+    cmds:
+      - tuna tuna_results/gather_scatter-$MATRIX_DIMENSION-$COUNT_PROCESSES.prof
+
+  tuna_alltoall_mpi:
+    desc: Visualizing Python runtime alltoall matrix multiplication
+    cmds:
+      - tuna tuna_results/alltoall-$MATRIX_DIMENSION-$COUNT_PROCESSES.prof
